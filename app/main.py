@@ -44,7 +44,7 @@ def buscar(request: SearchRequest):
 
     # Construir la consulta filtrando por intención y subintención
     query = f"""
-        SELECT id, name_document, text, embedding
+        SELECT id, name_document, text, embedding_value
         FROM `{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}`
         WHERE intent = '{request.intencion}' AND sub_intent = '{request.subintencion}'
     """
