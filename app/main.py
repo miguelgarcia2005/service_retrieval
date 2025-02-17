@@ -46,7 +46,7 @@ def buscar(request: SearchRequest):
     query = f"""
         SELECT id, name_document, text, embedding
         FROM `{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}`
-        WHERE intent = '{request.intencion}' AND subintencion = '{request.subintencion}'
+        WHERE intent = '{request.intencion}' AND sub_intent = '{request.subintencion}'
     """
     query_job = bq_client.query(query)
     rows = query_job.result()
