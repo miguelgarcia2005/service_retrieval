@@ -11,19 +11,20 @@ storage_client = storage.Client()
 
 nltk.download("punkt")
 
+
 def extraer_texto_por_parrafos(blob_name):
     print("Entrando en extracción de documentos")
     """Descarga un PDF desde Cloud Storage y extrae texto dividido en párrafos"""
     bucket = storage_client.bucket(BUCKET_NAME)
-    print(f'El bucket es {bucket}')
+    print(f"El bucket es {bucket}")
     blob = bucket.blob(f"{blob_name}")
-    print(f'La ruta del bucket es {blob}')  
+    print(f"La ruta del bucket es {blob}")
     pdf_data = blob.download_as_bytes()
 
     doc = fitz.open(stream=pdf_data, filetype="pdf")
     texto_completo = "\n".join([page.get_text("text") for page in doc])
 
     # Dividir el texto en párrafos
-    parrafos = nltk.tokenize.sent_tokenize(texto_completo)
+    parrafos = [p.strip() for p in texto_completo.split("\n\n") if p.strip()]
 
     return parrafos
