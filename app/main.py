@@ -55,7 +55,7 @@ def buscar(request: SearchRequest):
     best_match = None
     min_distance = float("inf")
     for row in rows:
-        chunk_embedding = row["embedding"]
+        chunk_embedding = row["embedding_value"]
         distance = sum((a - b) ** 2 for a, b in zip(chunk_embedding, question_embedding)) ** 0.5
         if distance < min_distance:
             min_distance = distance
