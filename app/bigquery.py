@@ -32,6 +32,7 @@ def insertar_chunks_en_bigquery(documento, parrafos, intencion, subintencion):
             "is_transactional": 'N',
             "embedding_value": embedding
         }
+        print(f'##### El valor del embedding es: {embedding} ####\n\n')
         rows.append(row)
 
     errors = bq_client.insert_rows_json(table_ref, rows)
