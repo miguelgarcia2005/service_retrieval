@@ -28,9 +28,9 @@ def insertar_chunks_en_bigquery(documento, parrafos, intencion, subintencion):
             "chunk_id": i,
             "text": parrafo,
             "intent": intencion,
-            "subintent": subintencion,
+            "sub_intent": subintencion,
             "is_transactional": 'N',
-            "embedding": embedding
+            "embedding_value": embedding
         }
         rows.append(row)
 
