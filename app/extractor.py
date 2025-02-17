@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BUCKET_NAME = os.getenv("profuturo_data")
+BUCKET_NAME = os.getenv("BUCKET_NAME")
 storage_client = storage.Client()
 
 nltk.download("punkt")
