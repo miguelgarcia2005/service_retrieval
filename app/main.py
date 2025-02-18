@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from app.extractor import extraer_texto_por_parrafos
+from app.extractor import extraer_texto_con_intenciones
 from app.bigquery import insertar_chunks_en_bigquery
 import os
 from dotenv import load_dotenv
@@ -12,7 +12,7 @@ app = FastAPI()
 @app.post("/procesar-documento/")
 def procesar_documento(documento: str, intencion: str, subintencion: str):
     """Extrae texto de un documento y lo almacena en BigQuery"""
-    parrafos = extraer_texto_por_parrafos(documento)
+    parrafos = extraer_texto_con_intenciones(documento,intencion)
     insertar_chunks_en_bigquery(documento, parrafos, intencion, subintencion)
     return {"mensaje": f"{len(parrafos)} chunks procesados y almacenados en BigQuery"}
     

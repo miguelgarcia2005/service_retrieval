@@ -13,18 +13,37 @@ storage_client = storage.Client()
 nltk.download("punkt")
 
 
-def extraer_texto_por_parrafos(blob_name):
+def extraer_texto_con_intenciones(blob_name, intencion):
     print("Entrando en extracción de documentos")
-    """Descarga un PDF desde Cloud Storage y extrae texto dividido en párrafos"""
+
+    """Descarga un PDF desde Cloud Storage, detecta títulos como subintenciones y extrae párrafos"""
     bucket = storage_client.bucket(BUCKET_NAME)
-    print(f"El bucket es {bucket}")
     blob = bucket.blob(f"{blob_name}")
-    print(f"La ruta del bucket es {blob}")
     pdf_data = blob.download_as_bytes()
 
     doc = fitz.open(stream=pdf_data, filetype="pdf")
-    texto_completo = "\n".join([page.get_text("text") for page in doc])
 
-    # Dividir el texto en párrafos
-    parrafos = [p.strip() for p in re.split(r'\n\s*\n', texto_completo) if p.strip()]
-    return parrafos
+    subintencion_actual = "Sin categoría"
+    parrafos_con_intenciones = []
+
+    for page in doc:
+        blocks = page.get_text("dict")["blocks"]
+        for block in blocks:
+            for line in block.get("lines", []):
+                for span in line.get("spans", []):
+                    texto = span["text"].strip()
+
+                    # Si el texto está en negritas y mayúsculas, lo consideramos una subintención
+                    if texto and span["bold"] and texto.isupper():
+                        subintencion_actual = texto  # Asignamos como subintención
+                    else:
+                        # Guardamos el párrafo con la intención y la subintención actual
+                        parrafos_con_intenciones.append(
+                            {
+                                "intencion": intencion,
+                                "subintencion": subintencion_actual,
+                                "texto": texto,
+                            }
+                        )
+
+    return parrafos_con_intenciones
