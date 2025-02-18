@@ -10,11 +10,11 @@ from vertexai.language_models import TextEmbeddingModel
 app = FastAPI()
 
 @app.post("/procesar-documento/")
-def procesar_documento(documento: str, intencion: str, subintencion: str):
-    """Extrae texto de un documento y lo almacena en BigQuery"""
-    parrafos = extraer_texto_con_intenciones(documento,intencion)
-    insertar_chunks_en_bigquery(documento, parrafos, intencion, subintencion)
-    return {"mensaje": f"{len(parrafos)} chunks procesados y almacenados en BigQuery"}
+def procesar_documento(documento: str, intencion: str):
+    """Extrae el texto del documento, asigna subintenciones y lo almacena en BigQuery"""
+    parrafos_con_intenciones = extraer_texto_con_intenciones(documento, intencion)
+    insertar_chunks_en_bigquery(parrafos_con_intenciones)
+    return {"mensaje": f"{len(parrafos_con_intenciones)} chunks procesados y almacenados en BigQuery"}
     
 # Modelo de datos para la búsqueda
 class SearchRequest(BaseModel):
