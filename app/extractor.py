@@ -1,5 +1,6 @@
 import fitz  # pymupdf para extraer texto de PDFs
 import nltk
+import re
 from google.cloud import storage
 import os
 from dotenv import load_dotenv
@@ -25,6 +26,5 @@ def extraer_texto_por_parrafos(blob_name):
     texto_completo = "\n".join([page.get_text("text") for page in doc])
 
     # Dividir el texto en párrafos
-    parrafos = [p.strip() for p in texto_completo.split("\n\n") if p.strip()]
-
+    parrafos = [p.strip() for p in re.split(r'\n\s*\n', texto_completo) if p.strip()]
     return parrafos
