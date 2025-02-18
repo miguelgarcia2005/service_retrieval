@@ -34,7 +34,7 @@ def extraer_texto_con_intenciones(blob_name, intencion):
                     texto = span["text"].strip()
 
                     # Si el texto está en negritas y mayúsculas, lo consideramos una subintención
-                    if texto and span["bold"] and texto.isupper():
+                    if texto and span.get("bold", False) and texto.isupper():
                         subintencion_actual = texto  # Asignamos como subintención
                     else:
                         # Guardamos el párrafo con la intención y la subintención actual
