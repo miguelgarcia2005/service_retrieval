@@ -22,28 +22,29 @@ def extraer_texto_con_intenciones(blob_name, intencion):
     pdf_data = blob.download_as_bytes()
 
     doc = fitz.open(stream=pdf_data, filetype="pdf")
-
-    subintencion_actual = "Sin categoría"
+    intencion_actual = None
     parrafos_con_intenciones = []
 
     for page in doc:
         blocks = page.get_text("dict")["blocks"]
         for block in blocks:
             for line in block.get("lines", []):
-                for span in line.get("spans", []):
-                    texto = span["text"].strip()
+                # Reconstruir la línea uniendo todos los spans
+                line_text = " ".join(span["text"].strip() for span in line.get("spans", [])).strip()
+                if not line_text:
+                    continue
 
-                    # Si el texto está en negritas y mayúsculas, lo consideramos una subintención
-                    if texto and span.get("bold", False) and texto.isupper():
-                        subintencion_actual = texto  # Asignamos como subintención
-                    else:
-                        # Guardamos el párrafo con la intención y la subintención actual
-                        parrafos_con_intenciones.append(
-                            {
-                                "intencion": intencion,
-                                "subintencion": subintencion_actual,
-                                "texto": texto,
-                            }
-                        )
-
+                # Verificar si la línea tiene al menos un span en negrita
+                es_titulo = any(span.get("bold", False) and span["text"].strip() for span in line.get("spans", []))
+                if es_titulo:
+                    # Actualizamos la intención con el título detectado
+                    intencion_actual = line_text
+                else:
+                    # Si ya se ha detectado una intención, guardamos la línea como párrafo asociado
+                    if intencion_actual:
+                        parrafos_con_intenciones.append({
+                            "intencion": intencion_actual,
+                            "texto": line_text
+                        })
+    print(parrafos_con_intenciones)
     return parrafos_con_intenciones
