@@ -12,7 +12,7 @@ app = FastAPI()
 @app.post("/procesar-documento/")
 def procesar_documento(documento: str, intencion: str):
     """Extrae el texto del documento, asigna subintenciones y lo almacena en BigQuery"""
-    parrafos_con_intenciones = extraer_texto_con_intenciones(documento, intencion)
+    parrafos_con_intenciones = extraer_texto_con_intenciones(documento)
     # insertar_chunks_en_bigquery(parrafos_con_intenciones,documento)
     print("###### PARRAFOS CON INTENCIONS ####")
     print(parrafos_con_intenciones)
