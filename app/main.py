@@ -25,8 +25,9 @@ def procesar_documento(documento: str, topic: str):
 # Modelo de datos para la búsqueda
 class SearchRequest(BaseModel):
     question: str
-    intencion: str
-    subintencion: str
+    intent: str
+    topic: str
+    channel : str
 
 
 # Configuración para la búsqueda: BigQuery y modelo de embeddings
@@ -51,11 +52,19 @@ def buscar(request: SearchRequest):
     question_embedding = embedding_model.get_embeddings([request.question])[0].values
 
     # Construir la consulta filtrando por intención y subintención
-    query = f"""
-        SELECT id, name_document, text, embedding_value
-        FROM `{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}`
-        WHERE intent = '{request.intencion}' AND sub_intent = '{request.subintencion}'
-    """
+    query = ''
+    if(request.intent == None):
+        query = f"""
+                SELECT id, name_document, text, embedding
+                FROM `{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}`
+                WHERE topic = '{request.topic}' 
+            """
+    else:
+        query = f"""
+            SELECT id, name_document, text, embedding
+            FROM `{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}`
+            WHERE intent = '{request.intent} AND channel = '{request.channel}' AND topic = '{request.topic}'
+        """
     query_job = bq_client.query(query)
     rows = query_job.result()
 
@@ -63,7 +72,7 @@ def buscar(request: SearchRequest):
     best_match = None
     min_distance = float("inf")
     for row in rows:
-        chunk_embedding = row["embedding_value"]
+        chunk_embedding = row["embedding"]
         distance = (
             sum((a - b) ** 2 for a, b in zip(chunk_embedding, question_embedding))
             ** 0.5
