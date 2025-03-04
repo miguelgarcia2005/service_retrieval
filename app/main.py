@@ -6,7 +6,7 @@ import os
 from dotenv import load_dotenv
 from google.cloud import bigquery
 from vertexai.language_models import TextEmbeddingModel
-
+import math
 app = FastAPI()
 
 
@@ -27,7 +27,7 @@ class SearchRequest(BaseModel):
     question: str
     intent: str
     topic: str
-    channel : str
+    channel: str
 
 
 # Configuración para la búsqueda: BigQuery y modelo de embeddings
@@ -49,7 +49,9 @@ def buscar(request: SearchRequest):
     # Verificar si el intent es nulo o vacío
     if not request.intent:
         # Convertir la pregunta a embedding
-        question_embedding = embedding_model.get_embeddings([request.question])[0].values
+        question_embedding = embedding_model.get_embeddings([request.question])[
+            0
+        ].values
 
         # Construir la consulta filtrando solo por topic
         query = f"""
@@ -59,29 +61,54 @@ def buscar(request: SearchRequest):
         """
         query_job = bq_client.query(query)
         rows = query_job.result()
+        query_job = bq_client.query(query)
+        rows = query_job.result()
 
-        # Buscar el chunk más relevante calculando la distancia euclidiana
+        mejores_respuestas = []
         best_match = None
-        min_distance = float("inf")
+        best_similarity = -1  # Inicializamos con valor muy bajo
+
+        # Función para calcular la similitud coseno
+        def cosine_similarity(vec_a, vec_b):
+            dot = sum(a * b for a, b in zip(vec_a, vec_b))
+            norm_a = math.sqrt(sum(a * a for a in vec_a))
+            norm_b = math.sqrt(sum(b * b for b in vec_b))
+            return dot / (norm_a * norm_b) if norm_a and norm_b else 0
+
         for row in rows:
             chunk_embedding = row["embedding"]
-            distance = (
-                sum((a - b) ** 2 for a, b in zip(chunk_embedding, question_embedding))
-                ** 0.5
-            )
-            if distance < min_distance:
-                min_distance = distance
+            similarity = cosine_similarity(question_embedding, chunk_embedding)
+            print("### Similaridad ###")
+            print(similarity)
+            # Actualizar mejor respuesta si se encuentra una similitud mayor
+            if similarity > best_similarity:
+                best_similarity = similarity
                 best_match = row
+            # Si la similitud supera el umbral 0.5, se agrega al array de respuestas
+            if similarity > 0.5:
+                mejores_respuestas.append(
+                    {
+                        "respuesta": row["text"],
+                        "documento": row["name_document"],
+                        "similarity": similarity,
+                    }
+                )
+            print("### Fin Similaridad ###")
 
-        # Retornar la respuesta si se encontró un match
+        # Si se encontró alguna respuesta
         if best_match:
             return {
-                "respuesta": best_match["text"],
-                "documento": best_match["name_document"],
-                "distancia": min_distance,
+                "mejor_respuesta": {
+                    "respuesta": best_match["text"],
+                    "documento": best_match["name_document"],
+                    "similarity": best_similarity,
+                },
+                "otras_respuestas": mejores_respuestas,
             }
         else:
-            return {"mensaje": "No se encontró ningún chunk que coincida con la búsqueda."}
+            return {
+                "mensaje": "No se encontró ningún chunk que coincida con la búsqueda."
+            }
     else:
         # Construir la consulta filtrando por intent, topic y channel
         query = f"""
@@ -105,4 +132,6 @@ def buscar(request: SearchRequest):
                 "distancia": 0,  # No hay distancia porque no se comparó con embeddings
             }
         else:
-            return {"mensaje": "No se encontró ningún chunk que coincida con la búsqueda."}
+            return {
+                "mensaje": "No se encontró ningún chunk que coincida con la búsqueda."
+            }
