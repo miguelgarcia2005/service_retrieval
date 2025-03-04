@@ -85,7 +85,7 @@ def buscar(request: SearchRequest):
                 best_similarity = similarity
                 best_match = row
             # Si la similitud supera el umbral 0.5, se agrega al array de respuestas
-            if similarity > 0.5:
+            if similarity > 0.7:
                 mejores_respuestas.append(
                     {
                         "respuesta": row["text"],
