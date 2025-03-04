@@ -43,50 +43,66 @@ embedding_model = TextEmbeddingModel.from_pretrained("textembedding-gecko")
 @app.post("/buscar/")
 def buscar(request: SearchRequest):
     """
-    1. Convierte la pregunta a un embedding.
-    2. Filtra los chunks en BigQuery por 'intent' y 'subintencion'.
-    3. Calcula la distancia euclidiana entre el embedding de la pregunta y cada embedding del chunk.
-    4. Retorna el chunk con la menor distancia (el más relevante).
+    1. Si el intent es nulo o vacío, busca todas las filas con el topic y realiza la comparación de embeddings.
+    2. Si el intent no es nulo ni vacío, busca la fila que coincida con el intent, topic y channel.
     """
-    # Convertir la pregunta a embedding
-    question_embedding = embedding_model.get_embeddings([request.question])[0].values
+    # Verificar si el intent es nulo o vacío
+    if not request.intent:
+        # Convertir la pregunta a embedding
+        question_embedding = embedding_model.get_embeddings([request.question])[0].values
 
-    # Construir la consulta filtrando por intención y subintención
-    query = ''
-    if(request.intent == None):
-        query = f"""
-                SELECT id, name_document, text, embedding
-                FROM `{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}`
-                WHERE topic = '{request.topic}' 
-            """
-    else:
+        # Construir la consulta filtrando solo por topic
         query = f"""
             SELECT id, name_document, text, embedding
             FROM `{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}`
-            WHERE intent = '{request.intent} AND channel = '{request.channel}' AND topic = '{request.topic}'
+            WHERE topic = '{request.topic}' AND channel = '{request.channel}'
         """
-    query_job = bq_client.query(query)
-    rows = query_job.result()
+        query_job = bq_client.query(query)
+        rows = query_job.result()
 
-    # Buscar el chunk más relevante calculando la distancia euclidiana
-    best_match = None
-    min_distance = float("inf")
-    for row in rows:
-        chunk_embedding = row["embedding"]
-        distance = (
-            sum((a - b) ** 2 for a, b in zip(chunk_embedding, question_embedding))
-            ** 0.5
-        )
-        if distance < min_distance:
-            min_distance = distance
-            best_match = row
+        # Buscar el chunk más relevante calculando la distancia euclidiana
+        best_match = None
+        min_distance = float("inf")
+        for row in rows:
+            chunk_embedding = row["embedding"]
+            distance = (
+                sum((a - b) ** 2 for a, b in zip(chunk_embedding, question_embedding))
+                ** 0.5
+            )
+            if distance < min_distance:
+                min_distance = distance
+                best_match = row
 
-    # Retornar la respuesta si se encontró un match
-    if best_match:
-        return {
-            "respuesta": best_match["text"],
-            "documento": best_match["name_document"],
-            "distancia": min_distance,
-        }
+        # Retornar la respuesta si se encontró un match
+        if best_match:
+            return {
+                "respuesta": best_match["text"],
+                "documento": best_match["name_document"],
+                "distancia": min_distance,
+            }
+        else:
+            return {"mensaje": "No se encontró ningún chunk que coincida con la búsqueda."}
     else:
-        return {"mensaje": "No se encontró ningún chunk que coincida con la búsqueda."}
+        # Construir la consulta filtrando por intent, topic y channel
+        query = f"""
+            SELECT id, name_document, text
+            FROM `{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}`
+            WHERE intent = '{request.intent}'
+              AND topic = '{request.topic}'
+              AND channel = '{request.channel}'
+        """
+        query_job = bq_client.query(query)
+        rows = query_job.result()
+
+        # Obtener la primera fila (debería ser única)
+        row = next(rows, None)
+
+        # Retornar la respuesta si se encontró un match
+        if row:
+            return {
+                "respuesta": row["text"],
+                "documento": row["name_document"],
+                "distancia": 0,  # No hay distancia porque no se comparó con embeddings
+            }
+        else:
+            return {"mensaje": "No se encontró ningún chunk que coincida con la búsqueda."}
