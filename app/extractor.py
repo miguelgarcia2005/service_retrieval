@@ -23,6 +23,7 @@ def extraer_texto_con_intenciones(blob_name):
 
     for page in doc:
         blocks = page.get_text("dict")["blocks"]
+        print(f"Estos son los blocks: {blocks}")
         for block in blocks:
             for line in block.get("lines", []):
                 # Reconstruir la línea uniendo todos los spans
