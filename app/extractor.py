@@ -1,4 +1,4 @@
-import fitz  # pymupdf para extraer texto de PDFs
+import fitz  # PyMuPDF
 from google.cloud import storage
 import os
 from dotenv import load_dotenv
@@ -22,19 +22,24 @@ def extraer_texto_con_intenciones(blob_name):
     parrafos_con_intenciones = []
 
     for page in doc:
-        blocks = page.get_text("dict")["blocks"]
-        print(f"Estos son los blocks: {blocks}")
+        # Extraer el texto de la página en formato "dict"
+        page_dict = page.get_text("dict")
+        blocks = page_dict.get("blocks", [])
+
         for block in blocks:
-            for line in block.get("lines", []):
-                # Reconstruir la línea uniendo todos los spans
+            if "lines" not in block:
+                continue
+
+            for line in block["lines"]:
                 line_text = " ".join(span["text"].strip() for span in line.get("spans", [])).strip()
                 if not line_text:
                     continue
 
-                # Verificar si la línea es un título (negrita y mayúsculas)
+                # Verificar si la línea es un título (negrita y fuente Calibri-Bold)
                 es_titulo = any(
-                    span.get("bold", False) and  # Negrita
-                    re.match(r"^[A-Z_]+$", span["text"].strip())  # Mayúsculas y guiones bajos
+                    span.get("flags", 0) == 16 and  # Negrita
+                    span.get("font", "").startswith("Calibri-Bold") and  # Fuente Calibri-Bold
+                    re.match(r"^[A-Z_ ]+$", span["text"].strip())  # Mayúsculas, guiones bajos y espacios
                     for span in line.get("spans", [])
                 )
 
