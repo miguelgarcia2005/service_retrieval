@@ -9,20 +9,25 @@ from vertexai.language_models import TextEmbeddingModel
 
 app = FastAPI()
 
+
 @app.post("/procesar-documento/")
-def procesar_documento(documento: str, intencion: str):
+def procesar_documento(documento: str, topic: str):
     """Extrae el texto del documento, asigna subintenciones y lo almacena en BigQuery"""
     parrafos_con_intenciones = extraer_texto_con_intenciones(documento)
-    # insertar_chunks_en_bigquery(parrafos_con_intenciones,documento)
+    insertar_chunks_en_bigquery(parrafos_con_intenciones, documento, topic)
     print("###### PARRAFOS CON INTENCIONS ####")
     print(parrafos_con_intenciones)
-    return {"mensaje": f"{len(parrafos_con_intenciones)} chunks procesados y almacenados en BigQuery"}
-    
+    return {
+        "mensaje": f"{len(parrafos_con_intenciones)} chunks procesados y almacenados en BigQuery"
+    }
+
+
 # Modelo de datos para la búsqueda
 class SearchRequest(BaseModel):
     question: str
     intencion: str
     subintencion: str
+
 
 # Configuración para la búsqueda: BigQuery y modelo de embeddings
 PROJECT_ID = os.getenv("PROJECT_ID")
@@ -31,6 +36,7 @@ TABLE_ID = os.getenv("TABLE_ID")
 
 bq_client = bigquery.Client()
 embedding_model = TextEmbeddingModel.from_pretrained("textembedding-gecko")
+
 
 # Endpoint para buscar la respuesta a partir de una pregunta, intención y subintención
 @app.post("/buscar/")
@@ -58,7 +64,10 @@ def buscar(request: SearchRequest):
     min_distance = float("inf")
     for row in rows:
         chunk_embedding = row["embedding_value"]
-        distance = sum((a - b) ** 2 for a, b in zip(chunk_embedding, question_embedding)) ** 0.5
+        distance = (
+            sum((a - b) ** 2 for a, b in zip(chunk_embedding, question_embedding))
+            ** 0.5
+        )
         if distance < min_distance:
             min_distance = distance
             best_match = row
@@ -68,7 +77,7 @@ def buscar(request: SearchRequest):
         return {
             "respuesta": best_match["text"],
             "documento": best_match["name_document"],
-            "distancia": min_distance
+            "distancia": min_distance,
         }
     else:
         return {"mensaje": "No se encontró ningún chunk que coincida con la búsqueda."}

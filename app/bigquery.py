@@ -14,7 +14,7 @@ bq_client = bigquery.Client()
 embedding_model = TextEmbeddingModel.from_pretrained("textembedding-gecko")
 
 
-def insertar_chunks_en_bigquery(parrafos_con_intenciones, documento):
+def insertar_chunks_en_bigquery(parrafos_con_intenciones, documento,topic):
     """Inserta los chunks extraídos en BigQuery, generando el embedding para cada uno."""
     table_ref = f"{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}"
     rows = []
@@ -25,14 +25,15 @@ def insertar_chunks_en_bigquery(parrafos_con_intenciones, documento):
 
         # Construir el registro con el embedding incluido
         row = {
-            "id": f"{parrafo['intencion']}_{parrafo['subintencion']}_chunk_{i}",
+            "id": f"{topic}_{parrafo['intencion']}_chunk_{i}",
+            "channel" : "text",
             "name_document": documento,  # Puedes modificar esto si hay un campo de documento
             "chunk_id": i,
             "text": parrafo["texto"],
+            "topic": topic,
             "intent": parrafo["intencion"],
-            "sub_intent": parrafo["subintencion"],
             "is_transactional": "N",
-            "embedding_value": embedding,
+            "embedding": embedding,
         }
         print(f"##### El valor del embedding es: {embedding} ####\n\n")
         rows.append(row)
