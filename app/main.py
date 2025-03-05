@@ -75,7 +75,7 @@ def buscar(request: SearchRequest):
 
             # Calcular similitudes para cada fila
             for row in rows:
-                chunk_embedding = ast.literal_eval(row["embedding"])  # Convertir a array si es necesario
+                chunk_embedding = row["embedding"]
                 similarity = cosine_similarity(question_embedding, chunk_embedding)
                 similarities.append({
                     "text": row["text"],  # Solo almacenamos el texto de la respuesta
