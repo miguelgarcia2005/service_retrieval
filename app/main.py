@@ -8,7 +8,7 @@ from google.cloud import bigquery
 from vertexai.language_models import TextEmbeddingModel
 import numpy as np
 from google.api_core.exceptions import GoogleAPICallError
-
+import ast
 app = FastAPI()
 
 
