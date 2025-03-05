@@ -6,3 +6,7 @@ pymupdf==1.21.1
 nltk==3.8.1
 python-dotenv==1.0.0
 google-cloud-aiplatform>=1.25.0
+numpy==1.23.5
+sentence-transformers==2.2.2
+openai==0.27.8
+google-cloud-core==2.3.2

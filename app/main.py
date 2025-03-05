@@ -6,7 +6,9 @@ import os
 from dotenv import load_dotenv
 from google.cloud import bigquery
 from vertexai.language_models import TextEmbeddingModel
-import math
+import numpy as np
+from google.api_core.exceptions import GoogleAPICallError
+
 app = FastAPI()
 
 
@@ -46,92 +48,75 @@ def buscar(request: SearchRequest):
     1. Si el intent es nulo o vacío, busca todas las filas con el topic y realiza la comparación de embeddings.
     2. Si el intent no es nulo ni vacío, busca la fila que coincida con el intent, topic y channel.
     """
-    # Verificar si el intent es nulo o vacío
-    if not request.intent:
-        # Convertir la pregunta a embedding
-        question_embedding = embedding_model.get_embeddings([request.question])[
-            0
-        ].values
+    try:
+        # Verificar si el intent es nulo o vacío
+        if not request.intent:
+            # Convertir la pregunta a embedding
+            question_embedding = embedding_model.get_embeddings([request.question])[0].values
 
-        # Construir la consulta filtrando solo por topic
-        query = f"""
-            SELECT id, name_document, text, embedding
-            FROM `{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}`
-            WHERE topic = '{request.topic}' AND channel = '{request.channel}'
-        """
-        query_job = bq_client.query(query)
-        rows = query_job.result()
-        query_job = bq_client.query(query)
-        rows = query_job.result()
+            # Construir la consulta filtrando solo por topic
+            query = f"""
+                SELECT id, name_document, text, embedding
+                FROM `{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}`
+                WHERE topic = '{request.topic}' AND channel = '{request.channel}'
+            """
+            query_job = bq_client.query(query)
+            rows = query_job.result()
 
-        mejores_respuestas = []
-        best_match = None
-        best_similarity = -1  # Inicializamos con valor muy bajo
+            # Lista para almacenar similitudes y respuestas
+            similarities = []
 
-        # Función para calcular la similitud coseno
-        def cosine_similarity(vec_a, vec_b):
-            dot = sum(a * b for a, b in zip(vec_a, vec_b))
-            norm_a = math.sqrt(sum(a * a for a in vec_a))
-            norm_b = math.sqrt(sum(b * b for b in vec_b))
-            return dot / (norm_a * norm_b) if norm_a and norm_b else 0
+            # Función para calcular la similitud coseno
+            def cosine_similarity(vec_a, vec_b):
+                dot = np.dot(vec_a, vec_b)
+                norm_a = np.linalg.norm(vec_a)
+                norm_b = np.linalg.norm(vec_b)
+                return dot / (norm_a * norm_b) if norm_a and norm_b else 0
 
-        for row in rows:
-            chunk_embedding = row["embedding"]
-            similarity = cosine_similarity(question_embedding, chunk_embedding)
-            print("### Similaridad ###")
-            print(similarity)
-            # Actualizar mejor respuesta si se encuentra una similitud mayor
-            if similarity > best_similarity:
-                best_similarity = similarity
-                best_match = row
-            # Si la similitud supera el umbral 0.5, se agrega al array de respuestas
-            if similarity > 0.7:
-                mejores_respuestas.append(
-                    {
-                        "respuesta": row["text"],
-                        "documento": row["name_document"],
-                        "similarity": similarity,
-                    }
-                )
-            print("### Fin Similaridad ###")
+            # Calcular similitudes para cada fila
+            for row in rows:
+                chunk_embedding = ast.literal_eval(row["embedding"])  # Convertir a array si es necesario
+                similarity = cosine_similarity(question_embedding, chunk_embedding)
+                similarities.append({
+                    "text": row["text"],  # Solo almacenamos el texto de la respuesta
+                    "similarity": similarity,
+                })
 
-        # Si se encontró alguna respuesta
-        if best_match:
+            # Ordenar por similitud (de mayor a menor)
+            similarities.sort(key=lambda x: x["similarity"], reverse=True)
+
+            # Seleccionar el top 3 de respuestas (solo el texto)
+            top_responses = [resp["text"] for resp in similarities[:3]]
+
+            # Retornar el top 3 de respuestas
             return {
-                "mejor_respuesta": {
-                    "respuesta": best_match["text"],
-                    "documento": best_match["name_document"],
-                    "similarity": best_similarity,
-                },
-                "otras_respuestas": mejores_respuestas,
+                "response": top_responses,
             }
         else:
-            return {
-                "mensaje": "No se encontró ningún chunk que coincida con la búsqueda."
-            }
-    else:
-        # Construir la consulta filtrando por intent, topic y channel
-        query = f"""
-            SELECT id, name_document, text
-            FROM `{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}`
-            WHERE intent = '{request.intent}'
-              AND topic = '{request.topic}'
-              AND channel = '{request.channel}'
-        """
-        query_job = bq_client.query(query)
-        rows = query_job.result()
+            # Construir la consulta filtrando por intent, topic y channel
+            query = f"""
+                SELECT id, name_document, text
+                FROM `{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}`
+                WHERE intent = '{request.intent}'
+                  AND topic = '{request.topic}'
+                  AND channel = '{request.channel}'
+            """
+            query_job = bq_client.query(query)
+            rows = query_job.result()
 
-        # Obtener la primera fila (debería ser única)
-        row = next(rows, None)
+            # Obtener la primera fila (debería ser única)
+            row = next(rows, None)
 
-        # Retornar la respuesta si se encontró un match
-        if row:
-            return {
-                "respuesta": row["text"],
-                "documento": row["name_document"],
-                "distancia": 0,  # No hay distancia porque no se comparó con embeddings
-            }
-        else:
-            return {
-                "mensaje": "No se encontró ningún chunk que coincida con la búsqueda."
-            }
+            # Retornar la respuesta si se encontró un match
+            if row:
+                return {
+                    "response": [row["text"]],  # Solo el texto de la respuesta
+                }
+            else:
+                return {
+                    "response": [],  # No se encontró ninguna respuesta
+                }
+    except GoogleAPICallError as e:
+        return {"error": f"Error al consultar BigQuery: {str(e)}"}
+    except Exception as e:
+        return {"error": f"Error inesperado: {str(e)}"}
