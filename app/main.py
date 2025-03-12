@@ -90,17 +90,6 @@ def buscar(request: SearchRequest):
                         "similarity": similarity,
                     }
                 )
-            for row in rows:
-                chunk_embedding = row["embedding"]
-                similarity = cosine_similarity(question_embedding, chunk_embedding)
-                similarities.append(
-                    {
-                        "text": row[
-                            "text"
-                        ],  # Solo almacenamos el texto de la respuesta
-                        "similarity": similarity,
-                    }
-                )
             end_time = time.time()  # Fin de la medición
             time_execution = end_time - start_time
             print("Tiempo de ejecución:", end_time - start_time, "segundos")
