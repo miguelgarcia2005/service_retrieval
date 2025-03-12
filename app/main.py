@@ -57,7 +57,7 @@ def buscar(request: SearchRequest):
             question_embedding = embedding_model.get_embeddings([request.question])[
                 0
             ].values
-
+            start_time_query = time.time() 
             # Construir la consulta filtrando solo por topic
             query = f"""
                 SELECT id, name_document, text, embedding
@@ -66,7 +66,8 @@ def buscar(request: SearchRequest):
             """
             query_job = bq_client.query(query)
             rows = query_job.result()
-
+            end_time_query = time.time()  # Fin de la medición
+            time_execution_query = end_time_query - start_time_query
             # Lista para almacenar similitudes y respuestas
             similarities = []
 
@@ -92,7 +93,7 @@ def buscar(request: SearchRequest):
                 )
             end_time = time.time()  # Fin de la medición
             time_execution = end_time - start_time
-            print("Tiempo de ejecución:", end_time - start_time, "segundos")
+            # print("Tiempo de ejecución:", end_time - start_time, "segundos")
             # Ordenar por similitud (de mayor a menor)
             similarities.sort(key=lambda x: x["similarity"], reverse=True)
 
@@ -105,6 +106,7 @@ def buscar(request: SearchRequest):
                 "knowledge_domain": request.topic,
                 "transactional_or_non_transactional": "non_transactional",
                 "time_execution": time_execution,
+                "query_time_execution" : time_execution_query
             }
         else:
             # Construir la consulta filtrando por intent, topic y channel
