@@ -18,7 +18,7 @@ def procesar_documento(documento: str, topic: str):
     """Extrae el texto del documento, asigna subintenciones y lo almacena en BigQuery"""
     parrafos_con_intenciones = extraer_texto_con_intenciones(documento)
     insertar_chunks_en_bigquery(parrafos_con_intenciones, documento, topic)
-    print("###### PARRAFOS CON INTENCIONS ####")
+    print("###### PARRAFOS CON INTENCIONS COMPLETAS ####")
     print(parrafos_con_intenciones)
     return {
         "mensaje": f"{len(parrafos_con_intenciones)} chunks procesados y almacenados en BigQuery"
