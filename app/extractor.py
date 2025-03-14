@@ -50,6 +50,7 @@ def extraer_texto_con_intenciones(blob_name):
                 )
 
                 if es_titulo:
+                    print(es_titulo)
                     # Actualizamos la intención con el título detectado
                     intencion_actual = line_text
                 else:
@@ -65,5 +66,5 @@ def extraer_texto_con_intenciones(blob_name):
                                 "texto": line_text
                             })
 
-    print(parrafos_con_intenciones)
+    # print(parrafos_con_intenciones)
     return parrafos_con_intenciones
