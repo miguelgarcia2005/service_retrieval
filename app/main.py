@@ -61,7 +61,7 @@ def buscar(request: SearchRequest):
             query = f"""
                 SELECT id, name_document, text, embedding
                 FROM `{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}`
-                WHERE topic = '{request.topic}' AND channel = '{request.channel}'
+                WHERE topic = '{request.topic}' AND channel = '{request.channel}' AND is_repeat = 'N'
             """
             query_job = bq_client.query(query)
             rows = query_job.result()
@@ -97,7 +97,7 @@ def buscar(request: SearchRequest):
             similarities.sort(key=lambda x: x["similarity"], reverse=True)
 
             # Seleccionar el top 3 de respuestas (solo el texto)
-            top_responses = [resp["text"] for resp in similarities[:3]]
+            top_responses = [resp["text"] for resp in similarities[:5]]
 
             # Retornar el top 3 de respuestas
             return {
