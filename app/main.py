@@ -61,7 +61,7 @@ def buscar(request: SearchRequest):
             query = f"""
                 SELECT id, name_document, text, embedding
                 FROM `{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}`
-                WHERE topic = '{request.topic}' AND channel = '{request.channel}' AND is_repeat = 'N'
+                WHERE is_repeat = 'N' AND topic = '{request.topic}' AND channel = '{request.channel}'
             """
             query_job = bq_client.query(query)
             rows = query_job.result()
