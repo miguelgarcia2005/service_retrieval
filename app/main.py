@@ -17,8 +17,7 @@ app = FastAPI()
 def procesar_documento(documento: str, topic: str):
     """Extrae el texto del documento, asigna subintenciones y lo almacena en BigQuery"""
     parrafos_con_intenciones = extraer_texto_con_intenciones(documento)
-    promt_determina_intencion = retrieval_get_promt()
-    insertar_chunks_en_bigquery(parrafos_con_intenciones, documento, topic)
+    # insertar_chunks_en_bigquery(parrafos_con_intenciones, documento, topic)
     print("###### PARRAFOS CON INTENCIONS ####")
     print(parrafos_con_intenciones)
     return {

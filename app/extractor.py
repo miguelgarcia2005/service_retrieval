@@ -36,10 +36,16 @@ def extraer_texto_con_intenciones(blob_name):
                     continue
 
                 # Verificar si la línea es un título (negrita y fuente Calibri-Bold)
+                # es_titulo = any(
+                #     span.get("flags", 0) == 16 and  # Negrita
+                #     span.get("font", "").startswith("Calibri-Bold") and  # Fuente Calibri-Bold
+                #     re.match(r"^[A-Z_ ]+$", span["text"].strip())  # Mayúsculas, guiones bajos y espacios
+                #     for span in line.get("spans", [])
+                # )
                 es_titulo = any(
                     span.get("flags", 0) == 16 and  # Negrita
-                    span.get("font", "").startswith("Calibri-Bold") and  # Fuente Calibri-Bold
-                    re.match(r"^[A-Z_ ]+$", span["text"].strip())  # Mayúsculas, guiones bajos y espacios
+                    span.get("font", "").startswith("Calibri-Bold") and 
+                    (re.match(r"^[A-Z][a-z]+(?:[A-Z][a-z]+)*$", span["text"].strip()) or re.match(r"^[A-Za-z]+$", span["text"].strip()))  # Palabra simple
                     for span in line.get("spans", [])
                 )
 
