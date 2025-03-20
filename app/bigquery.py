@@ -31,8 +31,8 @@ def insertar_chunks_en_bigquery(parrafos_con_intenciones, documento,topic):
             "name_document": documento,  # Puedes modificar esto si hay un campo de documento
             "chunk_id": i,
             "text": parrafo["texto"],
-            "topic": topic,
-            "intent": parrafo["intencion"],
+            "topic": topic.lower(),
+            "intent": parrafo["intencion"].lower(),
             "is_transactional": "N",
             "embedding": embedding,
             "is_repeat" : is_repeat
