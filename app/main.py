@@ -1,3 +1,4 @@
+from xmlrpc.client import boolean
 from fastapi import FastAPI
 from pydantic import BaseModel
 from app.extractor import extraer_texto_con_intenciones
@@ -14,10 +15,11 @@ app = FastAPI()
 
 
 @app.post("/procesar-documento/")
-def procesar_documento(documento: str, topic: str):
+def procesar_documento(documento: str, topic: str, carga: boolean):
     """Extrae el texto del documento, asigna subintenciones y lo almacena en BigQuery"""
     parrafos_con_intenciones = extraer_texto_con_intenciones(documento)
-    insertar_chunks_en_bigquery(parrafos_con_intenciones, documento, topic)
+    if carga:
+        insertar_chunks_en_bigquery(parrafos_con_intenciones, documento, topic)
     print("###### PARRAFOS CON INTENCIONS COMPLETAS ####")
     print(parrafos_con_intenciones)
     return {
