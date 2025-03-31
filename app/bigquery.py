@@ -19,12 +19,15 @@ def insertar_chunks_en_bigquery(parrafos_con_intenciones, documento, topic, chan
     table_ref = f"{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}"
     rows = []
     intents_repeated = [
-        "ModalidadCuarenta",
+        "AportacionesObreroPatronales",
+        "AportacionesPatronales",
+        "AportacionesEnTuCuentaIndividual",
+        "ContinuacionModalidadCuarenta",
         "RequisitosModalidadCuarenta",
         "BeneficiosDeLaModalidadCuarenta",
         "PagoModalidadCuarenta",
         "InscripcionModalidadCuarenta",
-        "ConsideracioneDeLaModalidadCuarenta",
+        "ConsideracionesDeLaModalidadCuarenta",
     ]
 
     for i, parrafo in enumerate(parrafos_con_intenciones):
