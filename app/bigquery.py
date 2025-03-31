@@ -60,7 +60,6 @@ def insertar_chunks_en_bigquery_beta(
     rows = []
     intents_repeated = [
         "AportacionesObreroPatronales",
-        "AportacionesObreroPatronales",
         "AportacionesPatronales",
         "AportacionesEnTuCuentaIndividual",
         "ContinuacionModalidadCuarenta",
