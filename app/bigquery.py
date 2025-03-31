@@ -8,6 +8,7 @@ load_dotenv()
 PROJECT_ID = os.getenv("PROJECT_ID")
 DATASET_ID = os.getenv("DATASET_ID")
 TABLE_ID = os.getenv("TABLE_ID")
+TABLE_ID_BETA = os.getenv("TABLE_ID_BETA")
 
 # Inicializar el cliente de BigQuery y el modelo de embeddings
 bq_client = bigquery.Client()
@@ -59,11 +60,11 @@ def insertar_chunks_en_bigquery_beta(
     parrafos_con_intenciones, documento, topic, channel
 ):
     """Inserta los chunks extraídos en BigQuery, generando el embedding para cada uno."""
-    table_ref = f"{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}"
+    table_ref = f"{PROJECT_ID}.{DATASET_ID}.{TABLE_ID_BETA}"
     rows = []
     intents_repeated = [
         "AportacionesObreroPatronales",
-        "AportacionesPatronales",
+        "AportacionesPatronales",   
         "AportacionesEnTuCuentaIndividual",
         "ContinuacionModalidadCuarenta",
         "RequisitosModalidadCuarenta",
