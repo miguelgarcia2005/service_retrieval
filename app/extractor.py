@@ -42,22 +42,17 @@ def extraer_texto_con_intenciones(blob_name):
                 #     re.match(r"^[A-Z_ ]+$", span["text"].strip())  # Mayúsculas, guiones bajos y espacios
                 #     for span in line.get("spans", [])
                 # )
-                # es_titulo = any(
-                #     span.get("flags", 0) == 16 and  # Negrita
-                #     span.get("font", "").startswith("Calibri-Bold") and 
-                #     (re.match(r"^[A-Z][a-z]+(?:[A-Z][a-z]+)*$", span["text"].strip()) or re.match(r"^[A-Za-z]+$", span["text"].strip()))  # Palabra simple
-                #     for span in line.get("spans", [])
-                # )
-                match = re.match(r"^([A-Z][a-z]+(?:[A-Z][a-z]+)*)(?:_([a-z]+))?$", text)
+                es_titulo = any(
+                    span.get("flags", 0) == 16 and  # Negrita
+                    span.get("font", "").startswith("Calibri-Bold") and 
+                    (re.match(r"^[A-Z][a-z]+(?:[A-Z][a-z]+)*$", span["text"].strip()) or re.match(r"^[A-Za-z]+$", span["text"].strip()))  # Palabra simple
+                    for span in line.get("spans", [])
+                )
 
-                # if es_titulo:
-                #     print(line_text)
-                #     # Actualizamos la intención con el título detectado
-                #     intencion_actual = line_text
-                if match:
-                    intencion_actual = match.group(1)
-                    subtitulo = match.group(2) if match.group(2) else None
-                    print(f"Título: {intencion_actual}, Subtítulo: {subtitulo}")
+                if es_titulo:
+                    print(line_text)
+                    # Actualizamos la intención con el título detectado
+                    intencion_actual = line_text
                 else:
                     # Si ya se ha detectado una intención, guardamos la línea como párrafo asociado
                     if intencion_actual:
