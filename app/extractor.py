@@ -88,9 +88,9 @@ def normalizar_intencion(texto: str) -> dict:
         raise ValueError(f"Formato CamelCase inválido en título: '{titulo_principal}'")
     
     return {
-        'titulo_principal': titulo_principal,
-        'subtitulo': subtitulo.lower(),
-        'intent_completa': texto
+        'intent': titulo_principal.lower(),
+        'subtitle': subtitulo.lower(),
+        'intent_document': titulo_principal
     }
 
 def es_titulo_valido(line_text: str, spans: list) -> bool:
@@ -139,12 +139,12 @@ def extraer_texto_con_intenciones_beta(blob_name: str):
 
                     if es_titulo_valido(line_text, line.get("spans", [])):
                         contexto_actual = normalizar_intencion(line_text)
-                        print(f"Contexto detectado: {contexto_actual['intent_completa']}")
+                        print(f"Contexto detectado: {contexto_actual['intent_document']}")
                     elif contexto_actual:
                         # Buscar si ya existe un bloque con este contexto
                         bloque_existente = next(
                             (b for b in datos_extraidos 
-                             if b['intent_completa'] == contexto_actual['intent_completa']),
+                             if b['intent_document'] == contexto_actual['intent_document']),
                             None
                         )
                         
