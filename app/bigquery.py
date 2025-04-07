@@ -77,17 +77,17 @@ def insertar_chunks_en_bigquery_beta(
     for i, parrafo in enumerate(parrafos_con_intenciones):
         # Generar el embedding para el párrafo (chunk)
         embedding = embedding_model.get_embeddings([parrafo["texto"]])[0].values
-        is_repeat = "S" if parrafo["intencion"] in intents_repeated else "N"
+        is_repeat = "S" if parrafo["intent"] in intents_repeated else "N"
         # Construir el registro con el embedding incluido
         row = {
-            "id": f"{topic}_{parrafo['intencion']}_chunk_{i}",
+            "id": f"{topic}_{parrafo['intent']}_chunk_{i}",
             "channel": channel.lower().strip(),
             "name_document": documento.strip(),
             "chunk_id": i,
             "text": parrafo["texto"].strip(),
             "knowledge_domain": topic.lower().strip(),
-            "intent": parrafo["intencion"].lower().strip(),
-            "intent_document": parrafo["intencion"].strip(),
+            "intent": parrafo["intent"].lower().strip(),
+            "intent_document": parrafo["intent"].strip(),
             "is_transactional": "N",
             "embedding": embedding,
             "is_repeat": is_repeat,
