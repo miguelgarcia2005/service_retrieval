@@ -10,6 +10,7 @@ from vertexai.language_models import TextEmbeddingModel
 import numpy as np
 from google.api_core.exceptions import GoogleAPICallError
 import time
+import redis
 
 app = FastAPI()
 
@@ -143,3 +144,21 @@ def buscar(request: SearchRequest):
         return {"error": f"Error al consultar BigQuery: {str(e)}"}
     except Exception as e:
         return {"error": f"Error inesperado: {str(e)}"}
+
+
+
+REDIS_HOST = os.getenv("REDIS_HOST")
+REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+
+@app.post("/redis_test")
+def test_redis():
+    try:
+        r = redis.Redis(
+            host='10.128.238.246',
+            port='6379',
+            socket_timeout=5
+        )
+        r.ping()  # Prueba de conexión
+        return "✅ Redis is reachable from Cloud Run!"
+    except Exception as e:
+        return f"❌ Redis connection failed: {str(e)}"

@@ -10,3 +10,4 @@ numpy==1.23.5
 sentence-transformers==2.2.2
 openai==0.27.8
 google-cloud-core==2.3.2
+redis>=4.5.5
