@@ -155,7 +155,7 @@ def test_redis():
     try:
         r = redis.Redis(
             host='10.128.238.246',
-            port='6379',
+            port=6379,
             socket_timeout=5
         )
         r.ping()  # Prueba de conexión
