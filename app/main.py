@@ -154,7 +154,7 @@ REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
 def test_redis():
     try:
         r = redis.Redis(
-            host='10.128.238.246',
+            host='10.128.238.245',
             port=6379,
             socket_timeout=25
         )
