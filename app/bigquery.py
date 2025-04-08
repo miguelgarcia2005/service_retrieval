@@ -86,6 +86,7 @@ def insertar_chunks_en_bigquery_beta(
             "chunk_id": i,
             "text": parrafo["texto"].strip(),
             "knowledge_domain": topic.lower().strip(),
+            "knowledge_group": parrafo["subtitle"].strip(),
             "intent": parrafo["intent"].lower().strip(),
             "intent_document": parrafo["intent"].strip(),
             "is_transactional": "N",
