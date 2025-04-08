@@ -156,7 +156,7 @@ def test_redis():
         r = redis.Redis(
             host='10.128.238.246',
             port=6379,
-            socket_timeout=5
+            socket_timeout=25
         )
         r.ping()  # Prueba de conexión
         return "✅ Redis is reachable from Cloud Run!"
