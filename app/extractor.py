@@ -88,7 +88,7 @@ def normalizar_intencion(texto: str) -> dict:
         raise ValueError(f"Formato CamelCase inválido en título: '{titulo_principal}'")
     
     return {
-        'intent': titulo_principal(),
+        'intent': titulo_principal,
         'subtitle': subtitulo.lower(),
         'intent_document': titulo_principal
     }
