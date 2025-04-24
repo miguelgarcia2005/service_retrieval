@@ -32,9 +32,10 @@ def extraer_texto_con_intenciones(blob_name):
                 continue
 
             for line in block["lines"]:
-                line_text = " ".join(
-                    span["text"].strip() for span in line.get("spans", [])
-                ).strip()
+                if(intencion_actual and line_text != intencion_actual):
+                    line_text = " ".join(
+                        span["text"].strip() for span in line.get("spans", [])
+                    ).strip()
                 if not line_text:
                     continue
 
@@ -56,9 +57,6 @@ def extraer_texto_con_intenciones(blob_name):
                 )
 
                 if es_titulo:
-                    print(
-                        f"Este es el titulo: {line_text} y esta es la intención actual {intencion_actual}"
-                    )
                     if intencion_actual and intencion_actual == line_text:
                         parrafos_con_intenciones.append(
                             {"intencion": intencion_actual, "texto": line_text}
