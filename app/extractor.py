@@ -58,7 +58,7 @@ def extraer_texto_con_intenciones(blob_name):
                     if intencion_actual:
                         # Si el párrafo ya existe, añadimos la línea al texto existente
                         if parrafos_con_intenciones and parrafos_con_intenciones[-1]["intencion"] == intencion_actual:
-                            print(f"Esta texto es la prueba: {intencion_actual} y el texto asociado es {line_text}")
+                            # print(f"Esta texto es la prueba: {intencion_actual} y el texto asociado es {line_text}")
                             parrafos_con_intenciones[-1]["texto"] += " " + line_text
                         else:
                             # Si no, creamos un nuevo párrafo
