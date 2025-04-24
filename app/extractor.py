@@ -32,7 +32,11 @@ def extraer_texto_con_intenciones(blob_name):
                 continue
 
             for line in block["lines"]:
-                if(intencion_actual and line_text != intencion_actual):
+                if intencion_actual and line_text != intencion_actual:
+                    line_text = " ".join(
+                        span["text"].strip() for span in line.get("spans", [])
+                    ).strip()
+                else:
                     line_text = " ".join(
                         span["text"].strip() for span in line.get("spans", [])
                     ).strip()
