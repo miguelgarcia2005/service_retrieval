@@ -53,6 +53,7 @@ def extraer_texto_con_intenciones(blob_name):
                     print(line_text)
                     # Actualizamos la intención con el título detectado
                     intencion_actual = line_text
+                    parrafos_con_intenciones = []
                 else:
                     # Si ya se ha detectado una intención, guardamos la línea como párrafo asociado
                     if intencion_actual:
