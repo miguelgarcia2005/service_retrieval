@@ -50,6 +50,11 @@ def extraer_texto_con_intenciones(blob_name):
                 )
 
                 if es_titulo:
+                    if parrafos_con_intenciones and parrafos_con_intenciones[-1]["intencion"] == intencion_actual:
+                        parrafos_con_intenciones.append({
+                                "intencion": intencion_actual,
+                                "texto": line_text
+                            })
                     print(line_text)
                     # Actualizamos la intención con el título detectado
                     intencion_actual = line_text
