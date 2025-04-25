@@ -58,7 +58,7 @@ def extraer_texto_con_intenciones(blob_name):
                 )
 
                 if es_titulo:
-                    if intencion_actual and intencion_actual == line_text:
+                    if not intencion_actual or temp_text != intencion_actual:
                         parrafos_con_intenciones.append(
                             {"intencion": intencion_actual, "texto": line_text}
                         )
