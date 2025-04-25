@@ -19,11 +19,76 @@ def extraer_texto_con_intenciones(blob_name):
     pdf_data = blob.download_as_bytes()
 
     doc = fitz.open(stream=pdf_data, filetype="pdf")
-    intencion_actual = None
+    # intencion_actual = None
+    # parrafos_con_intenciones = []
+
+    # for page in doc:
+    #     # Extraer el texto de la página en formato "dict"
+    #     page_dict = page.get_text("dict")
+    #     blocks = page_dict.get("blocks", [])
+
+    #     for block in blocks:
+    #         if "lines" not in block:
+    #             continue
+
+    #         for line in block["lines"]:
+    #             temp_text = " ".join(
+    #                 span["text"].strip() for span in line.get("spans", [])
+    #             ).strip()
+    #             es_titulo = any(
+    #                 span.get("flags", 0) == 16  # Negrita
+    #                 and span.get("font", "").startswith("Calibri-Bold")
+    #                 and (
+    #                     re.match(r"^[A-Z][a-z]+(?:[A-Z][a-z]+)*$", span["text"].strip())
+    #                     or re.match(r"^[A-Za-z]+$", span["text"].strip())
+    #                 )  # Palabra simple
+    #                 for span in line.get("spans", [])
+    #             )
+    #             if not intencion_actual or (temp_text != intencion_actual and not es_titulo):
+    #                 line_text = temp_text
+    #             if not line_text:
+    #                 continue
+
+    #             # Verificar si la línea es un título (negrita y fuente Calibri-Bold)
+    #             # es_titulo = any(
+    #             #     span.get("flags", 0) == 16 and  # Negrita
+    #             #     span.get("font", "").startswith("Calibri-Bold") and  # Fuente Calibri-Bold
+    #             #     re.match(r"^[A-Z_ ]+$", span["text"].strip())  # Mayúsculas, guiones bajos y espacios
+    #             #     for span in line.get("spans", [])
+    #             # )
+
+
+    #             if es_titulo:
+    #                 if intencion_actual:
+    #                     parrafos_con_intenciones.append(
+    #                         {"intencion": intencion_actual, "texto": line_text}
+    #                     )
+    #                 # Actualizamos la intención con el título detectado
+    #                 intencion_actual = temp_text
+    #             else:
+    #                 # Si ya se ha detectado una intención, guardamos la línea como párrafo asociado
+    #                 if intencion_actual:
+    #                     # Si el párrafo ya existe, añadimos la línea al texto existente
+    #                     if (
+    #                         parrafos_con_intenciones
+    #                         and parrafos_con_intenciones[-1]["intencion"]
+    #                         == intencion_actual
+    #                     ):
+    #                         # print(f"Esta texto es la prueba: {intencion_actual} y el texto asociado es {line_text}")
+    #                         parrafos_con_intenciones[-1]["texto"] += " " + line_text
+    #                     else:
+    #                         # Si no, creamos un nuevo párrafo
+    #                         parrafos_con_intenciones.append(
+    #                             {"intencion": intencion_actual, "texto": line_text}
+    #                         )
+
+    # # print(parrafos_con_intenciones)
+    # return parrafos_con_intenciones
     parrafos_con_intenciones = []
+    intencion_actual = None
+    texto_parrafo = ""
 
     for page in doc:
-        # Extraer el texto de la página en formato "dict"
         page_dict = page.get_text("dict")
         blocks = page_dict.get("blocks", [])
 
@@ -32,57 +97,43 @@ def extraer_texto_con_intenciones(blob_name):
                 continue
 
             for line in block["lines"]:
-                temp_text = " ".join(
-                    span["text"].strip() for span in line.get("spans", [])
-                ).strip()
+                # Extraer texto de la línea
+                temp_text = " ".join(span["text"].strip() for span in line.get("spans", [])).strip()
+                if not temp_text:
+                    continue
+
+                # Usar TU regex original para detectar títulos
                 es_titulo = any(
                     span.get("flags", 0) == 16  # Negrita
                     and span.get("font", "").startswith("Calibri-Bold")
                     and (
                         re.match(r"^[A-Z][a-z]+(?:[A-Z][a-z]+)*$", span["text"].strip())
                         or re.match(r"^[A-Za-z]+$", span["text"].strip())
-                    )  # Palabra simple
+                    )
                     for span in line.get("spans", [])
                 )
-                if not intencion_actual or (temp_text != intencion_actual and not es_titulo):
-                    line_text = temp_text
-                if not line_text:
-                    continue
-
-                # Verificar si la línea es un título (negrita y fuente Calibri-Bold)
-                # es_titulo = any(
-                #     span.get("flags", 0) == 16 and  # Negrita
-                #     span.get("font", "").startswith("Calibri-Bold") and  # Fuente Calibri-Bold
-                #     re.match(r"^[A-Z_ ]+$", span["text"].strip())  # Mayúsculas, guiones bajos y espacios
-                #     for span in line.get("spans", [])
-                # )
-
 
                 if es_titulo:
-                    if intencion_actual:
-                        parrafos_con_intenciones.append(
-                            {"intencion": intencion_actual, "texto": line_text}
-                        )
-                    # Actualizamos la intención con el título detectado
+                    # Guardar el título anterior y su párrafo (si existen)
+                    if intencion_actual is not None:
+                        parrafos_con_intenciones.append({
+                            "intencion": intencion_actual,
+                            "texto": texto_parrafo.strip()
+                        })
+                    # Actualizar el título actual y reiniciar el párrafo
                     intencion_actual = temp_text
+                    texto_parrafo = ""
                 else:
-                    # Si ya se ha detectado una intención, guardamos la línea como párrafo asociado
-                    if intencion_actual:
-                        # Si el párrafo ya existe, añadimos la línea al texto existente
-                        if (
-                            parrafos_con_intenciones
-                            and parrafos_con_intenciones[-1]["intencion"]
-                            == intencion_actual
-                        ):
-                            # print(f"Esta texto es la prueba: {intencion_actual} y el texto asociado es {line_text}")
-                            parrafos_con_intenciones[-1]["texto"] += " " + line_text
-                        else:
-                            # Si no, creamos un nuevo párrafo
-                            parrafos_con_intenciones.append(
-                                {"intencion": intencion_actual, "texto": line_text}
-                            )
+                    # Acumular texto del párrafo
+                    texto_parrafo += " " + temp_text
 
-    # print(parrafos_con_intenciones)
+    # Guardar el último título y párrafo
+    if intencion_actual is not None:
+        parrafos_con_intenciones.append({
+            "intencion": intencion_actual,
+            "texto": texto_parrafo.strip()
+        })
+
     return parrafos_con_intenciones
 
 
