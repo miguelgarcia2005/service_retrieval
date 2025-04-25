@@ -35,7 +35,16 @@ def extraer_texto_con_intenciones(blob_name):
                 temp_text = " ".join(
                     span["text"].strip() for span in line.get("spans", [])
                 ).strip()
-                if not intencion_actual or temp_text != intencion_actual:
+                es_titulo = any(
+                    span.get("flags", 0) == 16  # Negrita
+                    and span.get("font", "").startswith("Calibri-Bold")
+                    and (
+                        re.match(r"^[A-Z][a-z]+(?:[A-Z][a-z]+)*$", span["text"].strip())
+                        or re.match(r"^[A-Za-z]+$", span["text"].strip())
+                    )  # Palabra simple
+                    for span in line.get("spans", [])
+                )
+                if not intencion_actual or (temp_text != intencion_actual and not es_titulo):
                     line_text = temp_text
                 if not line_text:
                     continue
@@ -47,15 +56,7 @@ def extraer_texto_con_intenciones(blob_name):
                 #     re.match(r"^[A-Z_ ]+$", span["text"].strip())  # Mayúsculas, guiones bajos y espacios
                 #     for span in line.get("spans", [])
                 # )
-                es_titulo = any(
-                    span.get("flags", 0) == 16  # Negrita
-                    and span.get("font", "").startswith("Calibri-Bold")
-                    and (
-                        re.match(r"^[A-Z][a-z]+(?:[A-Z][a-z]+)*$", span["text"].strip())
-                        or re.match(r"^[A-Za-z]+$", span["text"].strip())
-                    )  # Palabra simple
-                    for span in line.get("spans", [])
-                )
+
 
                 if es_titulo:
                     if intencion_actual:
