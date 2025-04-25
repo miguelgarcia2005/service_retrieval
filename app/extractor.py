@@ -117,7 +117,7 @@ def extraer_texto_con_intenciones(blob_name):
                     # Guardar el título anterior y su párrafo (si existen)
                     if intencion_actual is not None:
                         parrafos_con_intenciones.append({
-                            "intencion": intencion_actual,
+                            "intent": intencion_actual,
                             "texto": texto_parrafo.strip()
                         })
                     # Actualizar el título actual y reiniciar el párrafo
@@ -130,7 +130,7 @@ def extraer_texto_con_intenciones(blob_name):
     # Guardar el último título y párrafo
     if intencion_actual is not None:
         parrafos_con_intenciones.append({
-            "intencion": intencion_actual,
+            "intent": intencion_actual,
             "texto": texto_parrafo.strip()
         })
 
