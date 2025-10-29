@@ -65,6 +65,25 @@ def insertar_chunks_en_bigquery(parrafos_con_intenciones, documento, topic, chan
 def insertar_chunks_en_bigquery_beta(parrafos_con_intenciones, documento, topic, channel):
     """Inserta los chunks extraídos en BigQuery beta, generando el embedding para cada uno."""
     table_ref = f"{PROJECT_ID}.{DATASET_ID}.{TABLE_ID_BETA}"
+
+
+
+        # Eliminar registros existentes
+    delete_query = f"""
+    DELETE FROM `{table_ref}`
+    WHERE LOWER(knowledge_domain) = @topic
+    AND LOWER(channel) = @channel
+    """
+    
+    job_config = bigquery.QueryJobConfig(
+        query_parameters=[
+            bigquery.ScalarQueryParameter("topic", "STRING", topic.lower().strip()),
+            bigquery.ScalarQueryParameter("channel", "STRING", channel.lower().strip()),
+        ]
+    )
+    
+    delete_job = bq_client.query(delete_query, job_config=job_config)
+    delete_job.result()  # Esperar a que termine
     rows = []
     intents_repeated = [
         "AportacionesObreroPatronales",
@@ -77,6 +96,7 @@ def insertar_chunks_en_bigquery_beta(parrafos_con_intenciones, documento, topic,
         "InscripcionModalidadCuarenta",
         "ConsideracionesDeLaModalidadCuarenta",
     ]
+    
 
     for i, parrafo in enumerate(parrafos_con_intenciones):
         embedding = embedding_model.get_embeddings([parrafo["texto"]])[0].values
