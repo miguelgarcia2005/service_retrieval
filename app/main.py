@@ -18,10 +18,7 @@ app = FastAPI()
 @app.post("/procesar-documento/")
 def procesar_documento(documento: str, topic: str, carga: boolean, channel : str, beta: boolean):
     """Extrae el texto del documento, asigna subintenciones y lo almacena en BigQuery"""
-    # if beta:
-    #     parrafos_con_intenciones = extraer_texto_con_intenciones_beta(documento)
-    # else: 
-    #     parrafos_con_intenciones = extraer_texto_con_intenciones(documento)
+
     parrafos_con_intenciones = extraer_texto_con_intenciones(documento)
     if carga:
         if beta:
