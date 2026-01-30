@@ -162,6 +162,8 @@ def insertar_chunks_en_bigquery_beta(parrafos_con_intenciones, documento, topic,
         "consideracionesdelamodalidadcuarenta",
     }
 
+    logger.info(">>> VERSIÓN CÓDIGO: 2025-01-29-v2 con chunk_id STRING <<<")
+    
     for i, parrafo in enumerate(parrafos_con_intenciones):
         try:
             embedding = embedding_model.get_embeddings([parrafo["texto"]])[0].values
@@ -169,11 +171,17 @@ def insertar_chunks_en_bigquery_beta(parrafos_con_intenciones, documento, topic,
             logger.error(f"Error generando embedding para párrafo {i}: {e}")
             raise Exception(f"Error generando embedding para párrafo {i}: {e}")
 
+        chunk_id_value = str(i)
+        
+        # Log para verificar tipos de datos
+        if i == 0:
+            logger.info(f">>> DEBUG: chunk_id_value = '{chunk_id_value}', type = {type(chunk_id_value)}")
+        
         rows.append({
             "id": f"{topic}_{parrafo['intent']}_chunk_{i}",
             "channel": channel.lower().strip(),
             "name_document": documento.strip(),
-            "chunk_id": str(i),  # Convertir a STRING para coincidir con el schema de BigQuery
+            "chunk_id": chunk_id_value,
             "text": parrafo["texto"].strip(),
             "knowledge_domain": topic.lower().strip(),
             "intent": parrafo["intent"].lower().strip(),
