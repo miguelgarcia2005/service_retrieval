@@ -20,15 +20,26 @@ def procesar_documento(documento: str, topic: str, carga: boolean, channel : str
     """Extrae el texto del documento, asigna subintenciones y lo almacena en BigQuery"""
 
     parrafos_con_intenciones = extraer_texto_con_intenciones(documento)
+    total_extraidos = len(parrafos_con_intenciones)
+    total_insertados = 0
+    
     if carga:
         if beta:
-            insertar_chunks_en_bigquery_beta(parrafos_con_intenciones, documento, topic,channel)
+            total_insertados = insertar_chunks_en_bigquery_beta(parrafos_con_intenciones, documento, topic, channel)
         else:   
-            insertar_chunks_en_bigquery(parrafos_con_intenciones, documento, topic,channel)
+            total_insertados = insertar_chunks_en_bigquery(parrafos_con_intenciones, documento, topic, channel)
+    
     print("###### PARRAFOS CON INTENCIONS COMPLETAS ####")
     print(parrafos_con_intenciones)
+    
     return {
-        "mensaje": f"{len(parrafos_con_intenciones)} chunks procesados y almacenados en BigQuery"
+        "mensaje": f"{total_extraidos} chunks extraídos",
+        "total_extraidos": total_extraidos,
+        "total_insertados_bigquery": total_insertados if carga else 0,
+        "carga_habilitada": carga,
+        "modo_beta": beta,
+        "topic": topic,
+        "channel": channel
     }
 
 
