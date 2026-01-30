@@ -173,7 +173,7 @@ def insertar_chunks_en_bigquery_beta(parrafos_con_intenciones, documento, topic,
             "id": f"{topic}_{parrafo['intent']}_chunk_{i}",
             "channel": channel.lower().strip(),
             "name_document": documento.strip(),
-            "chunk_id": i,
+            "chunk_id": str(i),  # Convertir a STRING para coincidir con el schema de BigQuery
             "text": parrafo["texto"].strip(),
             "knowledge_domain": topic.lower().strip(),
             "intent": parrafo["intent"].lower().strip(),
