@@ -194,31 +194,26 @@ def insertar_chunks_en_bigquery_beta(parrafos_con_intenciones, documento, topic,
     logger.info(f"Total de filas preparadas: {len(rows)}")
 
     # -----------------------------
-    # 3️⃣ Insertar usando LOAD JOB (más confiable que streaming)
+    # 3️⃣ Insertar en batches usando insert_rows_json
     # -----------------------------
-    job_config = bigquery.LoadJobConfig(
-        write_disposition=bigquery.WriteDisposition.WRITE_APPEND,
-        source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
-    )
+    total_insertados = 0
+    total_batches = (len(rows) + 49) // 50
     
-    logger.info(f"Iniciando load job para {len(rows)} registros...")
+    for idx, rows_batch in enumerate(batch_rows(rows, 50), start=1):
+        logger.info(f"Insertando batch {idx}/{total_batches} con {len(rows_batch)} registros...")
+        
+        errors = bq_client.insert_rows_json(table_ref, rows_batch)
+        
+        if errors:
+            logger.error(f"Error en batch {idx}:")
+            for error in errors:
+                logger.error(f"  - {error}")
+            raise Exception(f"Error insertando en BigQuery BETA (batch {idx}): {errors}")
+        
+        total_insertados += len(rows_batch)
+        logger.info(f"Batch {idx} completado. Acumulado: {total_insertados}/{len(rows)}")
     
-    load_job = bq_client.load_table_from_json(
-        rows,
-        table_ref,
-        job_config=job_config
-    )
-    
-    # Esperar a que el job termine
-    load_job.result()
-    
-    # Verificar resultado
-    if load_job.errors:
-        logger.error(f"Errores en load job: {load_job.errors}")
-        raise Exception(f"Error en load job: {load_job.errors}")
-    
-    total_insertados = load_job.output_rows
     logger.info(f"=== FIN INSERCIÓN BETA ===")
-    logger.info(f"Load job completado. Registros insertados: {total_insertados}")
+    logger.info(f"Total registros insertados: {total_insertados}")
     
     return total_insertados
